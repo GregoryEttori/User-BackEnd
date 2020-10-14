@@ -10,6 +10,8 @@ router.get('/login', authController.getLogin);
 
 router.get('/signup', authController.getSignup);
 
+router.get('/reset/:token', authController.getNewPassword);
+
 router.post('/login', [
     check('email')
         .isEmail()
@@ -50,7 +52,7 @@ router.post('/signup', [
         .normalizeEmail(),
     body(
         'password',
-        'Please enter a password with only numbers and text and at least 5 characters.'
+        'Please enter a password with only numbers and text and at least 8 characters.'
     )
         .isLength({ min: 8 })
         .isAlphanumeric()
@@ -65,8 +67,30 @@ router.post('/signup', [
 
 router.post('/logout', authController.postLogout);
 
-router.post('/reset', authController.postReset);
+router.post('/reset', [
+    check('email')
+        .isEmail()
+        .withMessage('Please enter a valid email.')
+        .custom((value, { req }) => {
+            return User.findOne({where: { email: value }}).then(userDoc => {
+                if (!userDoc) {
+                    return Promise.reject(
+                        'E-Mail does not exist.'
+                    );
+                }
+            });
+        })
+        .normalizeEmail(),
+],authController.postReset);
 
-router.post('/new-password', authController.postNewPassword);
+router.post('/new-password', [
+    body(
+        'password',
+        'Please enter a password with only numbers and text with at least 8 characters.'
+    )
+        .isLength({ min: 8 })
+        .isAlphanumeric()
+        .trim(),
+],authController.postNewPassword);
 
 module.exports = router;

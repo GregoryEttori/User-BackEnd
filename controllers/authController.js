@@ -24,7 +24,26 @@ exports.getSignup = (req, res, next) => {
 
 };
 
+exports.getNewPassword = (req, res, next) => {
+    console.log(req);
+    const token = req.params.token;
+    console.log("TOKEN : ", token)
+    User.findOne({where: {
+            resetToken: token,
+            resetTokenExpiration: { [Op.gt]: new Date() }
+        }})
+        .then(user => {
+            console.log("USER : ",user);
+            res.send( {
+                userId: user.id.toString()
+            })
+        })
+        .catch(err => console.log(err))
+}
+
 exports.postLogin = (req, res, next) => {
+    console.log(req);
+
     const email = req.body.email;
     const password = req.body.password;
 
@@ -56,7 +75,7 @@ exports.postLogin = (req, res, next) => {
                     }
                     console.log("do match : ", doMatch);
                     return res.status(422).send({
-                        errorMessage: "Password has to be valid."
+                        errorMessage: "Password has to be correct."
                     });
                 })
                 .catch(err => {
@@ -104,29 +123,37 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.postReset = (req, res, next) => {
+console.log(req);
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        console.log("errors : ", errors.array());
+        return res.status(422).send({
+            errorMessage: errors.array()[0].msg
+        });
+    }
+
     crypto.randomBytes(32, (err, buf) => {
         if(err){
             console.log(err);
-            return res.redirect('/reset');
+            return res.send('/reset');
         }
         const token = buf.toString('hex');
         User.findOne({where: { email: req.body.email }})
             .then((user) => {
                 if(!user){
-                    req.flash('error', 'No Account with this email found');
-                    return res.redirect('/reset');
+                    return res.send('/reset');
                 }
                 user.resetToken = token;
                 user.resetTokenExpiration = Date.now() +9600000;
                 return user.save();
             }).then(result => {
-            res.redirect('/login');
+            res.send('/login');
             return transporter.sendMail({
                 to: req.body.email,
                 from: 'gregory.ettori@gmail.com',
                 subject: 'Password Reset',
                 html: `<h1>Reset Password</h1>
-                        <p> click this <a href="http://localhost:3000/reset/${token}">link</a> to reset your password</p>`
+                        <p> click this <a href="http://192.168.1.13:8080/reset/${token}">link</a> to reset your password</p>`
             }).catch(error => console.log(error))
         })
             .catch(err => console.log(err))
@@ -139,6 +166,15 @@ exports.postNewPassword = (req, res, next) => {
     const userId = req.body.userId;
     const passwordToken = req.body.passwordToken;
     let resetUser;
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        console.log("errors : ", errors.array());
+        return res.status(422).send({
+            errorMessage: errors.array()[0].msg
+        });
+    }
+
     User.findOne({where : {resetToken: passwordToken, resetTokenExpiration: { [Op.gt]: new Date() }, id: userId}})
         .then(user => {
             resetUser = user;
@@ -150,6 +186,6 @@ exports.postNewPassword = (req, res, next) => {
         resetUser.resetTokenExpiration = null;
         return resetUser.save();
     }).then(result => {
-        res.redirect('/login')
+        res.send('/login')
     }).catch(err => console.log(err))
 }
