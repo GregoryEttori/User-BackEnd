@@ -21,7 +21,6 @@ exports.getLogin = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
-
 };
 
 exports.getNewPassword = (req, res, next) => {
@@ -42,7 +41,6 @@ exports.getNewPassword = (req, res, next) => {
 }
 
 exports.postLogin = (req, res, next) => {
-    console.log(req);
 
     const email = req.body.email;
     const password = req.body.password;
@@ -75,7 +73,7 @@ exports.postLogin = (req, res, next) => {
                     }
                     console.log("do match : ", doMatch);
                     return res.status(422).send({
-                        errorMessage: "Password has to be correct."
+                        errorMessage: "E-Mail or Password has to be correct."
                     });
                 })
                 .catch(err => {
@@ -116,8 +114,10 @@ exports.postSignup =  (req, res, next) => {
 }
 
 exports.postLogout = (req, res, next) => {
+    console.log('session before',req.session);
     req.session.destroy(err => {
         console.log(err);
+        console.log('session after',req.session);
         res.send({path: '/', isLogged: false});
     });
 };
@@ -147,13 +147,14 @@ console.log(req);
                 user.resetTokenExpiration = Date.now() +9600000;
                 return user.save();
             }).then(result => {
-            res.send('/login');
+            console.log(req.body.email);
+            res.send('Reset Success');
             return transporter.sendMail({
                 to: req.body.email,
                 from: 'gregory.ettori@gmail.com',
                 subject: 'Password Reset',
                 html: `<h1>Reset Password</h1>
-                        <p> click this <a href="http://192.168.1.13:8080/reset/${token}">link</a> to reset your password</p>`
+                        <p> click this <a href="http://192.168.1.19:8080/reset/${token}">link</a> to reset your password</p>`
             }).catch(error => console.log(error))
         })
             .catch(err => console.log(err))
@@ -161,7 +162,7 @@ console.log(req);
 }
 
 exports.postNewPassword = (req, res, next) => {
-    console.log(req.body);
+    console.log('newPassword body :',req.body);
     const newPassword = req.body.password;
     const userId = req.body.userId;
     const passwordToken = req.body.passwordToken;
@@ -178,9 +179,11 @@ exports.postNewPassword = (req, res, next) => {
     User.findOne({where : {resetToken: passwordToken, resetTokenExpiration: { [Op.gt]: new Date() }, id: userId}})
         .then(user => {
             resetUser = user;
+            console.log('resetUser', resetUser);
             return bcrypt.hash(newPassword, 12);
 
         }).then(hashedPassword => {
+        console.log('hashedPassword', hashedPassword);
         resetUser.password = hashedPassword;
         resetUser.resetToken = null;
         resetUser.resetTokenExpiration = null;

@@ -13,7 +13,7 @@ const authRouter = require('./routes/authRoute');
 const app = express();
 
 const corsOptions = {
-    origin: "http://192.168.1.13:8080",
+    origin: "http://192.168.1.19:8080",
     optionsSuccessStatus: 200
 }
 

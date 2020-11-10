@@ -15,12 +15,12 @@ router.get('/reset/:token', authController.getNewPassword);
 router.post('/login', [
     check('email')
         .isEmail()
-        .withMessage('Please enter a valid email.')
+        .withMessage(' ')
         .custom((value, { req }) => {
             return User.findOne({where: { email: value }}).then(userDoc => {
                 if (!userDoc) {
                     return Promise.reject(
-                        'E-Mail does not exist.'
+                        'E-Mail or Password has to be correct.'
                     );
                 }
             });
@@ -28,7 +28,6 @@ router.post('/login', [
         .normalizeEmail(),
     body(
         'password',
-        'Password has to be valid.'
     )
         .isLength({ min: 8 })
         .isAlphanumeric()
