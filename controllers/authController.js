@@ -62,8 +62,10 @@ exports.postLogin = (req, res, next) => {
                         req.session.user = user;
                         console.log("IsloggedIn : " ,req.session.isLoggedIn);
                         console.log("USER : ",req.session.user);
+                        console.log("before save SESSION : ",req.session);
                         return req.session.save(err => {
-                            console.log(err);
+                            console.log('error save session : ',err);
+                            console.log("after save session : ", req.session)
                             res.send({
                                 path: '/',
                                 name: user.name,
@@ -114,10 +116,7 @@ exports.postSignup =  (req, res, next) => {
 }
 
 exports.postLogout = (req, res, next) => {
-    console.log('session before',req.session);
     req.session.destroy(err => {
-        console.log(err);
-        console.log('session after',req.session);
         res.send({path: '/', isLogged: false});
     });
 };
@@ -191,4 +190,18 @@ exports.postNewPassword = (req, res, next) => {
     }).then(result => {
         res.send('/login')
     }).catch(err => console.log(err))
+}
+
+exports.postDeleteUser = (req, res, next) => {
+    User.findOne({where : {email: req.user.email, id: req.user.id}})
+        .then(user => {
+            user.destroy();
+            req.session.destroy();
+            res.send({
+                message: 'User deleted successfully',
+                path: '/'
+            });
+
+        })
+        .catch(error => console.log(error))
 }

@@ -92,4 +92,6 @@ router.post('/new-password', [
         .trim(),
 ],authController.postNewPassword);
 
+router.post('/delete-user', authController.postDeleteUser);
+
 module.exports = router;
