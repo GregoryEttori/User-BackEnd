@@ -10,7 +10,9 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const cors = require('cors');
 const flash = require('connect-flash');
 const authRouter = require('./routes/authRoute');
+const userRouter = require('./routes/userActions');
 const User = require('./models/userModel');
+const WatchLaterFilms = require('./models/watchLaterFilmsModel');
 
 const app = express();
 
@@ -56,6 +58,11 @@ app.use((req, res, next) => {
 
 app.use(flash());
 app.use('/', cors(corsOptions), authRouter);
+app.use('/user-actions', cors(corsOptions), userRouter);
+
+WatchLaterFilms.belongsTo(User, {constraints: true, onDelete: 'CASCADE'});
+User.hasMany(WatchLaterFilms);
+
 
 sequelize.sync().then(response => {
   app.listen(3000);

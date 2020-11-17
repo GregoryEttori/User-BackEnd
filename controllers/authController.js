@@ -2,6 +2,7 @@ require('dotenv').config()
 
 const crypto = require('crypto');
 const User = require('../models/userModel');
+const WatchLaterFilms = require('../models/watchLaterFilmsModel');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator')
 const { Op } = require("sequelize");
@@ -60,23 +61,28 @@ exports.postLogin = (req, res, next) => {
                     if (doMatch){
                         req.session.isLoggedIn = true;
                         req.session.user = user;
-                        console.log("IsloggedIn : " ,req.session.isLoggedIn);
-                        console.log("USER : ",req.session.user);
-                        console.log("before save SESSION : ",req.session);
-                        return req.session.save(err => {
-                            console.log('error save session : ',err);
-                            console.log("after save session : ", req.session)
-                            res.send({
-                                path: '/',
-                                name: user.name,
-                                email: user.email
-                            });
+                        console.log('userID', user.id);
+
+                        WatchLaterFilms.findAll({userId:req.user.id})
+                            .then(filmList => {
+                                 req.session.save(err => {
+                                    res.send({
+                                        path: '/',
+                                        name: user.name,
+                                        email: user.email,
+                                        wishlist: filmList,
+                                        isLoggedIn: true
+                                    })
+                                });
+                            })
+                            .catch(err => console.log(err));
+
+                }
+                    else {
+                        return res.status(422).send({
+                            errorMessage: "E-Mail or Password has to be correct."
                         });
                     }
-                    console.log("do match : ", doMatch);
-                    return res.status(422).send({
-                        errorMessage: "E-Mail or Password has to be correct."
-                    });
                 })
                 .catch(err => {
                     console.log(err);
