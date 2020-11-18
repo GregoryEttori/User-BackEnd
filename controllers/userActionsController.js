@@ -25,10 +25,10 @@ exports.postAddToWishlist = (req, res, next) => {
             poster_path
         })
         .then(response => {
-            WatchLaterFilms.findAll({userId:req.user.id})
+            WatchLaterFilms.findAll({where: {userId:req.user.id}})
                 .then(filmList => {
                     res.send({
-                        message: 'Movie has been added.',
+                        message: 'Movie has been added to your profile.',
                         wishlist: filmList,
                     });
                 })
@@ -36,4 +36,24 @@ exports.postAddToWishlist = (req, res, next) => {
         })
         .catch(err => console.log(err));
 
+}
+
+exports.postDeleteMovie = (req, res, next) => {
+    filmdId = req.body.data.filmId;
+    WatchLaterFilms.findOne({where: {filmId: filmdId, userId: req.user.id}})
+        .then(film => {
+            film.destroy()
+                .then(() => {
+                    WatchLaterFilms.findAll({where: {userId:req.user.id}})
+                    .then(filmList => {
+                        res.send({
+                            message: 'Film has been delete',
+                            wishList: filmList,
+                        });
+                    })
+                    .catch(err => console.log(err))
+                .catch(err => console.log(err));
+                })
+        })
+        .catch(err => console.log(err))
 }

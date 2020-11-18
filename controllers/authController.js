@@ -63,7 +63,7 @@ exports.postLogin = (req, res, next) => {
                         req.session.user = user;
                         console.log('userID', user.id);
 
-                        WatchLaterFilms.findAll({userId:req.user.id})
+                        WatchLaterFilms.findAll({where: {userId:req.user.id}})
                             .then(filmList => {
                                  req.session.save(err => {
                                     res.send({

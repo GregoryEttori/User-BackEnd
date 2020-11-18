@@ -21,7 +21,7 @@ const WatchLaterFilms = sequelize.define('watchLaterFilms', {
         allowNull: false
     },
     overview: {
-        type: Sequelize.TEXT,
+        type: Sequelize.TEXT('long'),
         allowNull: false
     },
     poster_path: {
