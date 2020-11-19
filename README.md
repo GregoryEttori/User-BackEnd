@@ -2,7 +2,7 @@
 
 NODEJS - Module d’enregistrement utilisateur, 
 
-# authentification, 
+### authentification, 
 # autorisation, 
 ## pattern MVC, 
 ## validation formulaire, 
